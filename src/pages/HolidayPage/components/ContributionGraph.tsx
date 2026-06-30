@@ -151,7 +151,7 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({
     }
 
     const isCurrentDay = isToday(date);
-    const formattedDate = format(date, "yyyy-MM-dd");
+    const formattedDate = date.toISOString().split("T")[0];
 
     let highlightClass = "";
     if (highlightedRange) {
