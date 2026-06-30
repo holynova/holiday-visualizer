@@ -81,4 +81,104 @@
       }
     }
   }
+
+  // 请假组合攻略样式
+  &__strategies-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f1f1f;
+    margin: 24px 0 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &::before {
+      content: "";
+      display: inline-block;
+      width: 4px;
+      height: 16px;
+      background: #722ed1;
+      border-radius: 2px;
+    }
+  }
+
+  &__strategies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  &__strategy-card {
+    background: #fafafa;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 12px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: #ffffff;
+      border-color: #d3adf7;
+      box-shadow: 0 4px 12px rgba(114, 46, 209, 0.08);
+      transform: translateY(-2px);
+    }
+  }
+
+  &__strategy-badge {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .strategy-tag {
+      font-size: 13px;
+      font-weight: 700;
+      color: #722ed1;
+      background: #f9f0ff;
+      border: 1px solid #d3adf7;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    .strategy-ratio {
+      font-size: 12px;
+      color: #8c8c8c;
+      background: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+  }
+
+  &__strategy-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #262626;
+    line-height: 1.4;
+  }
+
+  &__strategy-dates {
+    font-size: 12px;
+    color: #595959;
+    background: #ffffff;
+    border: 1px dashed #e8e8e8;
+    padding: 8px;
+    border-radius: 6px;
+    
+    .range {
+      font-weight: 600;
+      color: #262626;
+      margin-bottom: 4px;
+    }
+
+    .leave-days {
+      color: #8c8c8c;
+      font-size: 11px;
+      line-height: 1.3;
+    }
+  }
 }
+

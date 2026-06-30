@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ContributionGraph from "./components/ContributionGraph";
-import { getDateType } from "../../utils/holidays";
+import { getDateType, getLeaveStrategies } from "../../utils/holidays";
 import { eachDayOfInterval, startOfYear, endOfYear } from "date-fns";
 import "./HolidayPage.scss";
 
@@ -89,6 +89,33 @@ const HolidayPage: React.FC = () => {
                 </div>
               </div>
               <ContributionGraph year={year} />
+              
+              {(() => {
+                const strategies = getLeaveStrategies(year);
+                if (strategies.length === 0) return null;
+                return (
+                  <div className="holiday-page__strategies-section">
+                    <h3 className="holiday-page__strategies-title">💡 最佳请假攻略</h3>
+                    <div className="holiday-page__strategies-grid">
+                      {strategies.slice(0, 4).map((strat, idx) => (
+                        <div key={idx} className="holiday-page__strategy-card">
+                          <div className="holiday-page__strategy-badge">
+                            <span className="strategy-tag">请 {strat.leaveDays} 休 {strat.totalRestDays} 天</span>
+                            <span className="strategy-ratio">放大 {strat.ratio} 倍</span>
+                          </div>
+                          <div className="holiday-page__strategy-label">{strat.label}</div>
+                          <div className="holiday-page__strategy-dates">
+                            <div className="range">{strat.startDate} 至 {strat.endDate}</div>
+                            <div className="leave-days">
+                              请假日期: {strat.leaveDates.map(d => d.substring(5).split("-").map(Number).join("月") + "日").join(", ")}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           ),
         )}

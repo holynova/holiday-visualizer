@@ -105,3 +105,106 @@ export function getHolidayName(date: Date): string | null {
   const holiday = allHolidays.find((holiday) => holiday.date === dateStr);
   return holiday ? holiday.name : null;
 }
+
+export interface LeaveStrategy {
+  leaveDays: number;
+  totalRestDays: number;
+  startDate: string;
+  endDate: string;
+  leaveDates: string[];
+  label: string;
+  ratio: number;
+}
+
+export function getLeaveStrategies(year: number): LeaveStrategy[] {
+  const startDate = new Date(year, 0, 1);
+  const endDate = new Date(year, 11, 31);
+  const days = eachDayOfInterval({ start: startDate, end: endDate });
+  
+  // 1. Identify all days and their types
+  const calendarDays = days.map((day) => {
+    const type = getDateType(day);
+    const dateStr = day.toISOString().split("T")[0];
+    const isRest = type === "holiday" || type === "weekend";
+    const name = getHolidayName(day) || (type === "weekend" ? "周末" : "");
+    return { date: day, dateStr, isRest, name };
+  });
+
+  // 2. Identify all rest segments
+  interface RestSegment {
+    start: Date;
+    end: Date;
+    startStr: string;
+    endStr: string;
+    length: number;
+    label: string;
+  }
+  const segments: RestSegment[] = [];
+  let currentSegment: any[] = [];
+
+  calendarDays.forEach((day) => {
+    if (day.isRest) {
+      currentSegment.push(day);
+    } else {
+      if (currentSegment.length > 0) {
+        const uniqueNames = Array.from(new Set(currentSegment.map(d => d.name).filter(Boolean)));
+        let label = uniqueNames.join("、");
+        if (!label) label = "周末";
+        segments.push({
+          start: currentSegment[0].date,
+          end: currentSegment[currentSegment.length - 1].date,
+          startStr: currentSegment[0].dateStr,
+          endStr: currentSegment[currentSegment.length - 1].dateStr,
+          length: currentSegment.length,
+          label,
+        });
+        currentSegment = [];
+      }
+    }
+  });
+  // Handle if year ends in a rest segment
+  if (currentSegment.length > 0) {
+    const uniqueNames = Array.from(new Set(currentSegment.map(d => d.name).filter(Boolean)));
+    let label = uniqueNames.join("、");
+    if (!label) label = "周末";
+    segments.push({
+      start: currentSegment[0].date,
+      end: currentSegment[currentSegment.length - 1].date,
+      startStr: currentSegment[0].dateStr,
+      endStr: currentSegment[currentSegment.length - 1].dateStr,
+      length: currentSegment.length,
+      label,
+    });
+  }
+
+  // 3. Find gaps between adjacent rest segments
+  const strategies: LeaveStrategy[] = [];
+  for (let i = 0; i < segments.length - 1; i++) {
+    const segA = segments[i];
+    const segB = segments[i + 1];
+    
+    // Find the dates in between
+    const gapDays = calendarDays.filter(d => d.dateStr > segA.endStr && d.dateStr < segB.startStr);
+    
+    const gapSize = gapDays.length;
+    
+    // If the gap size is between 1 and 4 days, it's a viable option!
+    if (gapSize >= 1 && gapSize <= 4) {
+      const leaveDates = gapDays.map(d => d.dateStr);
+      const totalRestDays = segA.length + gapSize + segB.length;
+      
+      strategies.push({
+        leaveDays: gapSize,
+        totalRestDays,
+        startDate: segA.startStr,
+        endDate: segB.endStr,
+        leaveDates,
+        label: `连接【${segA.label}】与【${segB.label}】`,
+        ratio: Number((totalRestDays / gapSize).toFixed(1)),
+      });
+    }
+  }
+
+  // Sort strategies by ratio (efficiency) desc, then by totalRestDays desc
+  return strategies.sort((a, b) => b.ratio - a.ratio || b.totalRestDays - a.totalRestDays);
+}
