@@ -21,6 +21,7 @@ import {
   getHolidayName,
   getDateType,
   DateType,
+  toLocalDateStr,
 } from "../../../utils/holidays";
 import "./ContributionGraph.scss";
 
@@ -151,7 +152,7 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({
     }
 
     const isCurrentDay = isToday(date);
-    const formattedDate = date.toISOString().split("T")[0];
+    const formattedDate = toLocalDateStr(date);
 
     let highlightClass = "";
     if (highlightedRange) {

@@ -9,7 +9,7 @@ import holidays2023 from "./holidayData/2023.json";
 import holidays2024 from "./holidayData/2024.json";
 import holidays2025 from "./holidayData/2025.json";
 import holidays2026 from "./holidayData/2026.json";
-import { eachDayOfInterval, isWeekend } from "date-fns";
+import { isWeekend } from "date-fns";
 
 interface Holiday {
   date: string;
@@ -23,28 +23,37 @@ interface RawHoliday {
   type: "holiday" | "workingday";
 }
 
+export function toLocalDateStr(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 function expandHolidayRanges(raw: RawHoliday[]): Holiday[] {
   const result: Holiday[] = [];
   raw.forEach((item) => {
     if (item.range && Array.isArray(item.range) && item.range.length === 2) {
       const [start, end] = item.range;
-      const days = eachDayOfInterval({
-        start: new Date(start),
-        end: new Date(end),
-      });
-      days.forEach((day) => {
+      const [sYear, sMonth, sDay] = start.split("-").map(Number);
+      const [eYear, eMonth, eDay] = end.split("-").map(Number);
+      
+      const currentDate = new Date(sYear, sMonth - 1, sDay);
+      const endDate = new Date(eYear, eMonth - 1, eDay);
+      
+      while (currentDate <= endDate) {
         result.push({
-          date: day.toISOString().split("T")[0],
+          date: toLocalDateStr(currentDate),
           name: item.name,
           isWorkday: item.type === "workingday",
         });
-      });
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
     } else if (
       item.range &&
       Array.isArray(item.range) &&
       item.range.length === 1
     ) {
-      // 处理单日假期
       result.push({
         date: item.range[0],
         name: item.name,
@@ -79,7 +88,7 @@ function isWorkdayWeekend(name: string): boolean {
 }
 
 export function getDateType(date: Date): DateType {
-  const dateStr = date.toISOString().split("T")[0];
+  const dateStr = toLocalDateStr(date);
   const holiday = allHolidays.find((holiday) => holiday.date === dateStr);
 
   if (holiday) {
@@ -101,7 +110,7 @@ export function isHoliday(date: Date): boolean {
 }
 
 export function getHolidayName(date: Date): string | null {
-  const dateStr = date.toISOString().split("T")[0];
+  const dateStr = toLocalDateStr(date);
   const holiday = allHolidays.find((holiday) => holiday.date === dateStr);
   return holiday ? holiday.name : null;
 }
@@ -119,12 +128,17 @@ export interface LeaveStrategy {
 export function getLeaveStrategies(year: number): LeaveStrategy[] {
   const startDate = new Date(year, 0, 1);
   const endDate = new Date(year, 11, 31);
-  const days = eachDayOfInterval({ start: startDate, end: endDate });
+  const days: Date[] = [];
+  const curr = new Date(startDate);
+  while (curr <= endDate) {
+    days.push(new Date(curr));
+    curr.setDate(curr.getDate() + 1);
+  }
   
   // 1. Identify all days and their types
   const calendarDays = days.map((day) => {
     const type = getDateType(day);
-    const dateStr = day.toISOString().split("T")[0];
+    const dateStr = toLocalDateStr(day);
     const isRest = type === "holiday" || type === "weekend";
     const name = getHolidayName(day) || (type === "weekend" ? "周末" : "");
     return { date: day, dateStr, isRest, name };
