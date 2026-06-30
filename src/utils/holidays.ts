@@ -188,8 +188,8 @@ export function getLeaveStrategies(year: number): LeaveStrategy[] {
     
     const gapSize = gapDays.length;
     
-    // If the gap size is between 1 and 4 days, it's a viable option!
-    if (gapSize >= 1 && gapSize <= 4) {
+    // If the gap size is between 1 and 5 days, it's a viable option!
+    if (gapSize >= 1 && gapSize <= 5) {
       const leaveDates = gapDays.map(d => d.dateStr);
       const totalRestDays = segA.length + gapSize + segB.length;
       

@@ -121,6 +121,22 @@
       &:hover {
         transform: scale(1.4);
       }
+
+      &--highlighted-rest {
+        box-shadow: 0 0 0 2px #d3adf7;
+        z-index: 10;
+        position: relative;
+        border-radius: 2px;
+      }
+
+      &--highlighted-leave {
+        background-color: #722ed1 !important;
+        box-shadow: 0 0 0 2px #9254de, 0 0 6px rgba(114, 46, 209, 0.4);
+        z-index: 11;
+        position: relative;
+        border-radius: 2px;
+        animation: pulseHighlight 2s infinite;
+      }
     }
   }
 
@@ -147,3 +163,19 @@
     box-shadow: 0 0 0 0 rgba(24, 144, 255, 0);
   }
 }
+
+@keyframes pulseHighlight {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 2px #9254de, 0 0 6px rgba(114, 46, 209, 0.4);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 3px #b37feb, 0 0 10px rgba(114, 46, 209, 0.6);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 2px #9254de, 0 0 6px rgba(114, 46, 209, 0.4);
+  }
+}
+

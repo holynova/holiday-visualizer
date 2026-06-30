@@ -31,9 +31,15 @@ interface YearData {
 
 interface ContributionGraphProps {
   year: number;
+  highlightedRange?: { start: string; end: string } | null;
+  leaveDates?: string[];
 }
 
-const ContributionGraph: React.FC<ContributionGraphProps> = ({ year }) => {
+const ContributionGraph: React.FC<ContributionGraphProps> = ({
+  year,
+  highlightedRange = null,
+  leaveDates = [],
+}) => {
   const [yearData, setYearData] = useState<YearData | null>(null);
   const [tooltip, setTooltip] = useState<{
     show: boolean;
@@ -147,13 +153,25 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({ year }) => {
     const isCurrentDay = isToday(date);
     const formattedDate = format(date, "yyyy-MM-dd");
 
+    let highlightClass = "";
+    if (highlightedRange) {
+      const { start, end } = highlightedRange;
+      if (formattedDate >= start && formattedDate <= end) {
+        if (leaveDates && leaveDates.includes(formattedDate)) {
+          highlightClass = "contribution-graph__cell--highlighted-leave";
+        } else {
+          highlightClass = "contribution-graph__cell--highlighted-rest";
+        }
+      }
+    }
+
     return (
       <div
         key={dayIndex}
         title={formattedDate}
         className={`contribution-graph__cell contribution-graph__cell--${getCellType(
           date,
-        )} ${isCurrentDay ? "contribution-graph__cell--today" : ""}`}
+        )} ${isCurrentDay ? "contribution-graph__cell--today" : ""} ${highlightClass}`}
         onMouseEnter={(e) => handleMouseEnter(date, e)}
         onMouseLeave={handleMouseLeave}
       />
