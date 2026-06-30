@@ -8,6 +8,7 @@ import holidays2022 from "./holidayData/2022.json";
 import holidays2023 from "./holidayData/2023.json";
 import holidays2024 from "./holidayData/2024.json";
 import holidays2025 from "./holidayData/2025.json";
+import holidays2026 from "./holidayData/2026.json";
 import { eachDayOfInterval, isWeekend } from "date-fns";
 
 interface Holiday {
@@ -65,6 +66,7 @@ const allHolidays: Holiday[] = [
   ...expandHolidayRanges(holidays2023 as RawHoliday[]),
   ...expandHolidayRanges(holidays2024 as RawHoliday[]),
   ...expandHolidayRanges(holidays2025 as RawHoliday[]),
+  ...expandHolidayRanges(holidays2026 as RawHoliday[]),
 ];
 
 export type DateType = "holiday" | "workday-weekend" | "weekend" | "workday";

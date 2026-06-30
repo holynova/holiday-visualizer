@@ -17,8 +17,8 @@ const HolidayPage: React.FC = () => {
   const [yearStats, setYearStats] = useState<YearStats[]>([]);
 
   useEffect(() => {
-    // 生成 2016-2025 年的年份数组（倒序）
-    const years = Array.from({ length: 10 }, (_, i) => 2025 - i);
+    // 生成 2016-2026 年的年份数组（倒序）
+    const years = Array.from({ length: 11 }, (_, i) => 2026 - i);
 
     // 计算每年的统计数据
     const stats = years.map((year) => {
