@@ -98,3 +98,10 @@ src/
 ## 许可证
 
 MIT
+
+## Demo 分享卡片
+
+[![节假日可视化统计 - 小桑作品集 Demo 分享卡片：包含项目介绍与二维码](assets/demo-share-card.png)](https://holynova.github.io/holiday-visualizer/)
+
+移动端友好的在线 Demo：holiday-visualizer 的在线 Demo，适合在手机浏览器中快速体验。扫码或点击卡片打开：<https://holynova.github.io/holiday-visualizer/>
+
