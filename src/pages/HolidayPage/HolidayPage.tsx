@@ -1,176 +1,161 @@
-import React, { useEffect, useState } from "react";
-import ContributionGraph from "./components/ContributionGraph";
-import { getDateType, getLeaveStrategies } from "../../utils/holidays";
-import { eachDayOfInterval, startOfYear, endOfYear } from "date-fns";
-import "./HolidayPage.scss";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowRight, ArrowUpRight, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  getCalendarDays, getLeaveStrategies, todayInChina, years, yearSources,
+} from "../../utils/holidays";
+import type { CalendarDay, DateType, LeaveStrategy } from "../../utils/holidays";
+import LeavePlans from "./components/LeavePlans";
+import YearCalendar, { dateLabels } from "./components/YearCalendar";
+import "./HolidayPage.css";
 
-interface YearStats {
-  year: number;
-  totalDays: number;
-  holidayDays: number;
-  workdayWeekendDays: number;
-  weekendDays: number;
-  workDays: number;
+const newestYear = years[0];
+const oldestYear = years[years.length - 1];
+const categories: DateType[] = ["holiday", "weekend", "workday-weekend", "workday"];
+
+function requestedYear(currentYear: number) {
+  const value = Number(new URLSearchParams(window.location.search).get("year"));
+  if (years.includes(value)) return value;
+  return Math.min(newestYear, Math.max(oldestYear, currentYear));
 }
 
-const HolidayPage: React.FC = () => {
-  const [yearStats, setYearStats] = useState<YearStats[]>([]);
-  const [hoveredStrategy, setHoveredStrategy] = useState<{ [year: number]: any | null }>({});
-  const [lockedStrategy, setLockedStrategy] = useState<{ [year: number]: any | null }>({});
-  const [expandedYears, setExpandedYears] = useState<{ [year: number]: boolean }>({});
+function YearWorkspace({ year, today }: { year: number; today: string }) {
+  const days = useMemo(() => getCalendarDays(year), [year]);
+  const plans = useMemo(() => getLeaveStrategies(days), [days]);
+  const [activePlan, setActivePlan] = useState<LeaveStrategy>();
+  const [selectedDay, setSelectedDay] = useState<CalendarDay>();
+  const [view, setView] = useState<"calendar" | "plans">("calendar");
+  const stats: Record<DateType, number> = { holiday: 0, weekend: 0, "workday-weekend": 0, workday: 0 };
+  for (const { type } of days) stats[type]++;
 
-  useEffect(() => {
-    // 生成 2016-2026 年的年份数组（倒序）
-    const years = Array.from({ length: 11 }, (_, i) => 2026 - i);
-
-    // 计算每年的统计数据
-    const stats = years.map((year) => {
-      const yearStart = startOfYear(new Date(year, 0, 1));
-      const yearEnd = endOfYear(new Date(year, 0, 1));
-      const allDays = eachDayOfInterval({ start: yearStart, end: yearEnd });
-
-      let holidayDays = 0;
-      let workdayWeekendDays = 0;
-      let weekendDays = 0;
-      let workDays = 0;
-
-      allDays.forEach((date) => {
-        const dateType = getDateType(date);
-        switch (dateType) {
-          case "holiday":
-            holidayDays++;
-            break;
-          case "workday-weekend":
-            workdayWeekendDays++;
-            break;
-          case "weekend":
-            weekendDays++;
-            break;
-          case "workday":
-            workDays++;
-            break;
-        }
-      });
-
-      return {
-        year,
-        totalDays: allDays.length,
-        holidayDays,
-        workdayWeekendDays,
-        weekendDays,
-        workDays,
-      };
+  function showOnCalendar(plan: LeaveStrategy) {
+    setView("calendar");
+    const target = days.find(({ key }) => key === plan.leaveDates[0]);
+    if (!target) return;
+    setSelectedDay(target);
+    window.requestAnimationFrame(() => {
+      const button = document.getElementById(`date-${target.key}`);
+      button?.focus({ preventScroll: true });
+      button?.scrollIntoView({ block: "center" });
     });
-
-    setYearStats(stats);
-  }, []);
+  }
 
   return (
-    <div className="holiday-page">
-      <div className="holiday-page__header">
-        <h1>节假日日历</h1>
+    <>
+      <dl className="year-stats" aria-label={`${year}年日期统计`}>
+        {categories.map((type) => (
+          <div className="metric" key={type}>
+            <dt><i className={`swatch swatch--${type}`} />{dateLabels[type]}</dt>
+            <dd>{stats[type]}<small>天</small></dd>
+          </div>
+        ))}
+      </dl>
+      <div className="segmented view-switch" role="group" aria-label="查看日历或方案">
+        <button type="button" aria-pressed={view === "calendar"} onClick={() => setView("calendar")}>全年日历</button>
+        <button type="button" aria-pressed={view === "plans"} onClick={() => setView("plans")}>请假方案</button>
       </div>
-      <div className="holiday-page__content">
-        {yearStats.map(
-          ({
-            year,
-            totalDays,
-            holidayDays,
-            workdayWeekendDays,
-            weekendDays,
-            workDays,
-          }) => (
-            <div key={year} className="holiday-page__year-section">
-              <div className="holiday-page__year-header">
-                <h2>{year}年</h2>
-                <div className="holiday-page__stats">
-                  <span>全年天数：{totalDays}天</span>
-                  <span>法定假日：{holidayDays}天</span>
-                  <span>调休工作日：{workdayWeekendDays}天</span>
-                  <span>普通周末：{weekendDays}天</span>
-                  <span>普通工作日：{workDays}天</span>
-                </div>
-              </div>
-              <ContributionGraph
-                year={year}
-                highlightedRange={
-                  (hoveredStrategy[year] || lockedStrategy[year])
-                    ? {
-                        start: (hoveredStrategy[year] || lockedStrategy[year])!.startDate,
-                        end: (hoveredStrategy[year] || lockedStrategy[year])!.endDate,
-                      }
-                    : null
-                }
-                leaveDates={(hoveredStrategy[year] || lockedStrategy[year]) ? (hoveredStrategy[year] || lockedStrategy[year])!.leaveDates : []}
-              />
-              
-              {(() => {
-                const strategies = getLeaveStrategies(year);
-                if (strategies.length === 0) return null;
-                const isExpanded = !!expandedYears[year];
-                const displayedStrategies = isExpanded ? strategies : strategies.slice(0, 4);
-
-                return (
-                  <div className="holiday-page__strategies-section">
-                    <h3 className="holiday-page__strategies-title">💡 最佳请假攻略</h3>
-                    <div className="holiday-page__strategies-grid">
-                      {displayedStrategies.map((strat, idx) => {
-                        const isHovered = hoveredStrategy[year]?.startDate === strat.startDate;
-                        const isLocked = lockedStrategy[year]?.startDate === strat.startDate;
-                        const isActive = isHovered || isLocked;
-
-                        return (
-                          <div
-                            key={idx}
-                            className={`holiday-page__strategy-card ${isActive ? "holiday-page__strategy-card--active" : ""}`}
-                            onMouseEnter={() => setHoveredStrategy(prev => ({ ...prev, [year]: strat }))}
-                            onMouseLeave={() => setHoveredStrategy(prev => ({ ...prev, [year]: null }))}
-                            onClick={() => {
-                              setLockedStrategy(prev => {
-                                const current = prev[year];
-                                if (current && current.startDate === strat.startDate) {
-                                  return { ...prev, [year]: null };
-                                }
-                                return { ...prev, [year]: strat };
-                              });
-                            }}
-                            style={{ cursor: "pointer" }}
-                          >
-                            <div className="holiday-page__strategy-badge">
-                              <span className="strategy-tag">请 {strat.leaveDays} 休 {strat.totalRestDays} 天</span>
-                              <span className="strategy-ratio">放大 {strat.ratio} 倍</span>
-                            </div>
-                            <div className="holiday-page__strategy-label">{strat.label}</div>
-                            <div className="holiday-page__strategy-dates">
-                              <div className="range">{strat.startDate} 至 {strat.endDate}</div>
-                              <div className="leave-days">
-                                请假日期: {strat.leaveDates.map(d => d.substring(5).split("-").map(Number).join("月") + "日").join(", ")}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {strategies.length > 4 && (
-                      <div className="holiday-page__strategies-expand-bar">
-                        <button
-                          onClick={() => setExpandedYears(prev => ({ ...prev, [year]: !prev[year] }))}
-                          className="holiday-page__expand-btn"
-                        >
-                          {isExpanded ? "收起部分方案" : `展开更多方案 (${strategies.length - 4}个)`}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-            </div>
-          ),
-        )}
+      <div className="workspace" data-view={view}>
+        <section className="panel calendar-panel" aria-labelledby="calendar-heading">
+          <YearCalendar
+            year={year}
+            days={days}
+            today={today}
+            activePlan={activePlan}
+            selectedDay={selectedDay}
+            onSelectDay={setSelectedDay}
+          />
+        </section>
+        <aside className="panel plans-panel" aria-labelledby="plans-heading">
+          <LeavePlans
+            plans={plans}
+            today={today}
+            canFilterUpcoming={String(year) === today.slice(0, 4)}
+            activePlan={activePlan}
+            onSelectPlan={setActivePlan}
+            onShowOnCalendar={showOnCalendar}
+          />
+        </aside>
       </div>
-    </div>
+    </>
   );
-};
+}
 
-export default HolidayPage;
+export default function HolidayPage() {
+  const today = todayInChina();
+  const currentYear = Number(today.slice(0, 4));
+  const [year, setYear] = useState(() => requestedYear(currentYear));
+
+  useEffect(() => {
+    function syncYear() {
+      setYear(requestedYear(currentYear));
+    }
+    window.addEventListener("popstate", syncYear);
+    return () => window.removeEventListener("popstate", syncYear);
+  }, [currentYear]);
+
+  useEffect(() => {
+    document.title = `${year} 年节假日历 · 中国大陆放假与调休`;
+  }, [year]);
+
+  function selectYear(next: number) {
+    if (year === next || !years.includes(next)) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("year", String(next));
+    window.history.pushState(null, "", url);
+    setYear(next);
+  }
+
+  const source = yearSources[year];
+  const yearLength = new Date(year, 1, 29).getMonth() === 1 ? 366 : 365;
+  return (
+    <main className="shell holiday-app">
+      <div className="year-banner">
+        <div className="banner-art" aria-hidden="true" />
+        <div className="banner-content">
+          <h1><span>{year}</span> 年节假日</h1>
+          <p>中国大陆 <span aria-hidden="true">·</span> 全年 {yearLength} 天</p>
+          <div className="banner-controls">
+            <div className="year-switch">
+              <button
+                type="button"
+                aria-label="上一年"
+                disabled={year === oldestYear}
+                onClick={() => selectYear(year - 1)}
+              >
+                <ChevronLeft size={18} aria-hidden="true" />
+              </button>
+              <div className="year-select">
+                <select aria-label="选择年份" value={year} onChange={(event) => selectYear(Number(event.target.value))}>
+                  {years.map((option) => <option key={option} value={option}>{option} 年</option>)}
+                </select>
+                <ChevronDown size={14} aria-hidden="true" />
+              </div>
+              <button
+                type="button"
+                aria-label="下一年"
+                disabled={year === newestYear}
+                onClick={() => selectYear(year + 1)}
+              >
+                <ChevronRight size={18} aria-hidden="true" />
+              </button>
+            </div>
+            {year === currentYear && newestYear > currentYear && (
+              <button className="newest-year" type="button" onClick={() => selectYear(newestYear)}>
+                查看 {newestYear} 年 <ArrowRight size={15} aria-hidden="true" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <YearWorkspace year={year} today={today} key={year} />
+
+      <footer className="app-footer">
+        <span>涵盖 {oldestYear}–{newestYear} 年 <span aria-hidden="true">·</span> {import.meta.env.VITE_APP_VERSION}</span>
+        <nav aria-label="相关链接">
+          {source && <a href={source}>{year} 年放假通知 <ArrowUpRight size={13} aria-hidden="true" /></a>}
+          <a href="https://xiaosang.cc/">小桑作品集 <ArrowUpRight size={13} aria-hidden="true" /></a>
+        </nav>
+      </footer>
+    </main>
+  );
+}

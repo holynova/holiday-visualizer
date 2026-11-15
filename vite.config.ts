@@ -1,11 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { version } from "./package.json";
 
-// https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
-  base: "/holiday-visualizer/",
-  json: {
-    stringify: true,
-  },
-});
+  base: mode === "pages" ? "/holiday-visualizer/" : "/",
+  define: { "import.meta.env.VITE_APP_VERSION": JSON.stringify(`v${version}`) },
+  json: { stringify: true },
+}));

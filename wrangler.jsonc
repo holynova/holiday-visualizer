@@ -1,0 +1,15 @@
+{
+  "$schema": "https://unpkg.com/wrangler@4.128.0/config-schema.json",
+  "name": "holiday-visualizer",
+  "compatibility_date": "2026-09-03",
+  "workers_dev": false,
+  "assets": {
+    "directory": "./dist"
+  },
+  "routes": [
+    {
+      "pattern": "holiday-visualizer.xiaosang.cc",
+      "custom_domain": true
+    }
+  ]
+}

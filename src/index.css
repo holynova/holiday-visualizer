@@ -1,48 +1,69 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* 全局滚动条样式 */
-html {
-  overflow-y: scroll;
+@font-face {
+  font-family: "STIX Two Text";
+  src: url("./assets/stix-two-text-latin-bold.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
 }
 
-/* 自定义滚动条样式 */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
+:root {
+  color-scheme: light;
+  --paper: #f4f1e8;
+  --surface: #fcfaf4;
+  --ink: #1e2f25;
+  --pine: #143b2c;
+  --muted: #566259;
+  --line: #dcd7ca;
+  --rule: #e8e3d8;
+  --holiday: #e3ef9d;
+  --weekend: #e0ecdf;
+  --makeup: #f5d894;
+  --workday: #eeece4;
+  --leave: #e1eee9;
+  --heading: "STIX Two Text", "Songti SC", "Noto Serif CJK SC", "SimSun", serif;
+  --body: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif;
 
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-/* Firefox 滚动条样式 */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #888 #f1f1f1;
-}
-
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font: 14px/1.5 var(--body);
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
+*, *::before, *::after { box-sizing: border-box; }
+body { min-width: 280px; margin: 0; }
+h1, h2, h3, p, dl, dd { margin: 0; }
+button, select, input { font: inherit; }
+button, select { color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: default; }
+a { color: inherit; text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid #42725b;
+  outline-offset: 3px;
+}
+.shell { width: min(1320px, calc(100% - 72px)); margin-inline: auto; }
+.site-header { border-bottom: 1px solid var(--line); }
+.site-header-inner { min-height: 60px; display: flex; justify-content: space-between; align-items: center; }
+.brand, .source-link { display: inline-flex; align-items: center; }
+.brand { gap: 10px; font: 700 23px/1 var(--heading); color: var(--pine); }
+.brand:hover { text-decoration: none; }
+.brand-mark {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 9px;
+  color: var(--surface);
+  background: var(--pine);
+}
+.source-link { gap: 7px; min-height: 44px; padding-inline: 8px; font-weight: 600; }
+
+@media (max-width: 640px) {
+  .shell { width: calc(100% - 28px); }
+  .site-header-inner { min-height: 54px; }
+  .brand { font-size: 21px; }
+  .brand-mark { width: 30px; height: 30px; border-radius: 7px; }
+  .brand-mark svg { width: 17px; }
+  .source-link { min-width: 44px; justify-content: center; }
+  .source-link span, .source-link svg:last-child { display: none; }
 }
