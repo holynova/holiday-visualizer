@@ -36,8 +36,8 @@ pnpm dev
 
 ```bash
 pnpm build
-pnpm deploy:check
-pnpm deploy
+pnpm run deploy:check
+pnpm run deploy
 ```
 
 从 `main` 分支手动发布到现有 Cloudflare Worker。生产构建输出位于 `dist/`。
